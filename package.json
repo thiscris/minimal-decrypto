@@ -1,0 +1,24 @@
+{
+  "name": "submarine-safari",
+  "version": "1.0.0",
+  "description": "HTML5 game about ciphers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thiscris/submarine-safari.git"
+  },
+  "author": "Hristo Dobrev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thiscris/submarine-safari/issues"
+  },
+  "homepage": "https://github.com/thiscris/submarine-safari#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "firebase": "^7.14.0",
+    "socket.io": "^2.3.0"
+  }
+}

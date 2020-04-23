@@ -103,3 +103,8 @@ CreateMatch({username: username}).then(function(result) {
   // ...
 });
 
+$("#host-btn").on("click",function(){
+  console.log(this);
+  CreateMatch();
+})
+

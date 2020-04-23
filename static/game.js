@@ -27,12 +27,17 @@
 
 var db = firebase.database(app);
 var dbRef = db.ref();
-console.log(dbRef);
-console.log(dbRef.collection);
+var dbRef2 = db.ref("matches");
+console.log(dbRef2);
+console.log(dbRef2.snapshot);
 
-dbRef.on("value", (snapshot)=> {
-    console.log(snapshot.val());
-});
+// dbRef2.on("value", (snapshot)=> {
+//     console.log(snapshot.val());
+// });
+
+// dbRef2.on("child_changed", (snapshot)=> {
+//   console.log(snapshot.val());
+// });
 
 var movement = {
     up: false,
@@ -95,16 +100,33 @@ setInterval(function() {
 // });
 
 var username = "go";
-var CreateMatch = firebase.functions().httpsCallable('CreateMatch');
-CreateMatch({username: username}).then(function(result) {
-  // Read result of the Cloud Function.
-  console.log(result.data.text);
-  // ...
-});
+//This is the firebase function with your parameters as well
+var CreateMatch = firebase.functions().httpsCallable('CreateMatch?user='+username);
+//Call the function here, there is a then
 
-$("#host-btn").onclick = function(){
-  alert(1);
+
+
+
+document.getElementById("host-btn").onclick = function(){
   console.log(this);
-  CreateMatch();
+  var matchID = CreateMatch().then(function(result) {
+    // Read result of the Cloud Function.
+    console.log(result.data.text);
+    alert();
+  })
+  .catch(error => {
+    //handle error
+    console.log(error);
+  }
+
+  );
+  console.log(matchID);
 };
 
+var thisMatchRef = firebase.database(app).ref("matches");
+thisMatchRef.on('child_changed',function(data){
+  console.log("CHILD_CHANGE");
+  console.log(data.val()); 
+  var datos = data.val(); 
+  console.log(datos);
+});

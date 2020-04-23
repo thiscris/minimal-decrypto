@@ -23,23 +23,39 @@ exports.addMessage = functions.https.onRequest(async (req, res) => {
   });
 
 
-exports.makeUppercase = functions.database.ref('/messages/{pushId}/original')
-.onCreate((snapshot, context) => {
-  // Grab the current value of what was written to the Realtime Database.
-  const original = snapshot.val();
-  console.log('Uppercasing', context.params.pushId, original);
-  const uppercase = original.toUpperCase();
-  // You must return a Promise when performing asynchronous tasks inside a Functions such as
-  // writing to the Firebase Realtime Database.
-  // Setting an "uppercase" sibling in the Realtime Database returns a Promise.
-  return snapshot.ref.parent.child('uppercase').set(uppercase);
-});
 
 
 
 //Creates a new match in the match list
-function CreateNewMatch(username) {
-  // A match entry.
+// function CreateNewMatch(username) {
+//   // A match entry.
+//   var matchData = {
+//     host: username,
+//     state: "waiting for players",
+//     playernames: username
+//   };
+
+//   // Get a key for a new Match.
+//   var newMatchKey = admin.database().ref('matches').push().key;
+
+//   // Write the new match's data in the match list
+//   var updates = {};
+//   updates['/matches/' + newMatchKey] = matchData;
+
+//   //return admin.database().ref().update(updates);
+//   res.send(newMatchKey);
+// }
+
+// Take the text parameter passed to this HTTP endpoint and insert it into the
+// Realtime Database under the path /matches/
+// URL example https://us-central1-submarine-safari.cloudfunctions.net/CreateMatch?user=cris
+
+exports.CreateMatch = functions.https.onRequest(async (req, res) => {
+  //Generate a random user id
+  const rndUserId = "player"+Math.round(Math.random()*1000);
+  // Grab the user parameter from the url or use the random user id from above.
+  const username = req.query.user || rndUserId;
+
   var matchData = {
     host: username,
     state: "waiting for players",
@@ -48,28 +64,13 @@ function CreateNewMatch(username) {
 
   // Get a key for a new Match.
   var newMatchKey = admin.database().ref('matches').push().key;
+  console.log(newMatchKey);
 
   // Write the new match's data in the match list
   var updates = {};
   updates['/matches/' + newMatchKey] = matchData;
+  //execute the update
+  var server_resp = admin.database().ref().update(updates);
 
-  return admin.database().ref().update(updates);
-}
-
-// Take the text parameter passed to this HTTP endpoint and insert it into the
-// Realtime Database under the path /matches/
-// URL example https://us-central1-submarine-safari.cloudfunctions.net/CreateMatch?user=cris
-
-exports.CreateMatch = functions.https.onRequest(async (req, res) => {
-  // Grab the user parameter from the url.
-  const username = req.query.user;
-
-  // what to do with the returned promise?
-  const smth = CreateNewMatch(username);
-  
-  
-  //const snapshot = await admin.database().ref('/messages').push({original: username});
-  // Redirect with 303 SEE OTHER to the URL of the pushed object in the Firebase console.
-  //res.redirect(303, snapshot.ref.toString());
-  return "done smth";
+  res.send({newMatchKey,server_resp});
 });

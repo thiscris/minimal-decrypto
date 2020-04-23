@@ -1,5 +1,3 @@
-//import firebase from 'firebase';
-require("firebase/functions");
 
 // Your web app's Firebase configuration
   var firebaseConfig = {
@@ -22,10 +20,10 @@ require("firebase/functions");
   //console.log(app);
 
 
-var socket = io();
-socket.on('message', function(data) {
-  console.log(data+" 2");
-});
+//var socket = io();
+//socket.on('message', function(data) {
+//  console.log(data+" 2");
+//});
 
 var db = firebase.database(app);
 var dbRef = db.ref();
@@ -75,25 +73,26 @@ var movement = {
     }
   });
 
-socket.emit('new player');
+//socket.emit('new player');
 setInterval(function() {
-  socket.emit('movement', movement);
+  //socket.emit('movement', movement);
 }, 1000 / 60);
 
-var canvas = document.getElementById('canvas');
-canvas.width = 800;
-canvas.height = 600;
-var context = canvas.getContext('2d');
-socket.on('state', function(players) {
-  context.clearRect(0, 0, 800, 600);
-  context.fillStyle = 'green';
-  for (var id in players) {
-    var player = players[id];
-    context.beginPath();
-    context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
-    context.fill();
-  }
-});
+// var canvas = document.getElementById('canvas');
+// canvas.width = 800;
+// canvas.height = 600;
+// var context = canvas.getContext('2d');
+
+// socket.on('state', function(players) {
+//   context.clearRect(0, 0, 800, 600);
+//   context.fillStyle = 'green';
+//   for (var id in players) {
+//     var player = players[id];
+//     context.beginPath();
+//     context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
+//     context.fill();
+//   }
+// });
 
 var username = "go";
 var CreateMatch = firebase.functions().httpsCallable('CreateMatch');
@@ -103,8 +102,9 @@ CreateMatch({username: username}).then(function(result) {
   // ...
 });
 
-$("#host-btn").on("click",function(){
+$("#host-btn").onclick = function(){
+  alert(1);
   console.log(this);
   CreateMatch();
-})
+};
 

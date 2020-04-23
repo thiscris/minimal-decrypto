@@ -41,22 +41,25 @@ exports.makeUppercase = functions.database.ref('/messages/{pushId}/original')
 function CreateNewMatch(username) {
   // A match entry.
   var matchData = {
-    host: username
+    host: username,
+    state: "waiting for players",
+    playernames: username
   };
 
   // Get a key for a new Match.
-  var newMatchKey = firebase.database().ref('matches').push().key;
+  var newMatchKey = admin.database().ref('matches').push().key;
 
   // Write the new match's data in the match list
   var updates = {};
-  updates['/posts/' + newMatchKey] = matchData;
-  updates['/user-posts/' + uid + '/' + newMatchKey] = matchData;
+  updates['/matches/' + newMatchKey] = matchData;
 
-  return firebase.database().ref().update(updates);
+  return admin.database().ref().update(updates);
 }
 
 // Take the text parameter passed to this HTTP endpoint and insert it into the
-// Realtime Database under the path /messages/:pushId/original
+// Realtime Database under the path /matches/
+// URL example https://us-central1-submarine-safari.cloudfunctions.net/CreateMatch?user=cris
+
 exports.CreateMatch = functions.https.onRequest(async (req, res) => {
   // Grab the user parameter from the url.
   const username = req.query.user;
@@ -68,4 +71,5 @@ exports.CreateMatch = functions.https.onRequest(async (req, res) => {
   //const snapshot = await admin.database().ref('/messages').push({original: username});
   // Redirect with 303 SEE OTHER to the URL of the pushed object in the Firebase console.
   //res.redirect(303, snapshot.ref.toString());
+  return "done smth";
 });

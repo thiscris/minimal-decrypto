@@ -1,4 +1,5 @@
 //import firebase from 'firebase';
+require("firebase/functions");
 
 // Your web app's Firebase configuration
   var firebaseConfig = {
@@ -12,8 +13,11 @@
   };
 
   // Initialize Firebase
-  
   firebase.initializeApp(firebaseConfig);
+  // Initialize Cloud Functions through Firebase
+  var functions = firebase.functions();
+
+
   var app = firebase.app();
   //console.log(app);
 
@@ -89,5 +93,13 @@ socket.on('state', function(players) {
     context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
     context.fill();
   }
+});
+
+var username = "go";
+var CreateMatch = firebase.functions().httpsCallable('CreateMatch');
+CreateMatch({username: username}).then(function(result) {
+  // Read result of the Cloud Function.
+  console.log(result.data.text);
+  // ...
 });
 

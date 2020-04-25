@@ -17,88 +17,25 @@
 
 
   var app = firebase.app();
-  //console.log(app);
 
-
-//var socket = io();
-//socket.on('message', function(data) {
-//  console.log(data+" 2");
-//});
 
 var db = firebase.database(app);
 var dbRef = db.ref();
 var dbRef2 = db.ref("matches");
-console.log(dbRef2);
-console.log(dbRef2.snapshot);
 
-// dbRef2.on("value", (snapshot)=> {
-//     console.log(snapshot.val());
-// });
 
-// dbRef2.on("child_changed", (snapshot)=> {
-//   console.log(snapshot.val());
-// });
+var localsettings = {default:""};
 
-var movement = {
-    up: false,
-    down: false,
-    left: false,
-    right: false
-  }
-  document.addEventListener('keydown', function(event) {
-    switch (event.keyCode) {
-      case 65: // A
-        movement.left = true;
-        break;
-      case 87: // W
-        movement.up = true;
-        break;
-      case 68: // D
-        movement.right = true;
-        break;
-      case 83: // S
-        movement.down = true;
-        break;
-    }
-  });
-  document.addEventListener('keyup', function(event) {
-    switch (event.keyCode) {
-      case 65: // A
-        movement.left = false;
-        break;
-      case 87: // W
-        movement.up = false;
-        break;
-      case 68: // D
-        movement.right = false;
-        break;
-      case 83: // S
-        movement.down = false;
-        break;
-    }
-  });
+//calls a cloud function by name with given parameters and returns its output
+fbaseFunc = function (name,parameters) {
+  var str = name+"?";
 
-//socket.emit('new player');
-setInterval(function() {
-  //socket.emit('movement', movement);
-}, 1000 / 60);
-
-// var canvas = document.getElementById('canvas');
-// canvas.width = 800;
-// canvas.height = 600;
-// var context = canvas.getContext('2d');
-
-// socket.on('state', function(players) {
-//   context.clearRect(0, 0, 800, 600);
-//   context.fillStyle = 'green';
-//   for (var id in players) {
-//     var player = players[id];
-//     context.beginPath();
-//     context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
-//     context.fill();
-//   }
-// });
-
+  Object.entries(parameters).forEach(([key, value]) => 
+    str +=key+"="+value+"&"
+  );
+  console.log(str);
+  return firebase.functions().httpsCallable(str)();
+}
 
 
 
@@ -108,28 +45,194 @@ document.getElementById("host-btn").onclick = function(){
 
   //get username from the input field
   var username = document.getElementById("nickname").value;
-  //This is the firebase function with your parameters as well
-  var CreateMatch = firebase.functions().httpsCallable('CreateMatch?user='+username);
-  //Call the function here, there is a then
-
-  var matchID = CreateMatch().then(function(result) {
+  localsettings.username = username;
+  
+  //calls the cloud function CreateMatch
+  var matchID = fbaseFunc("CreateMatch",{user:username})
+  .then(function(result) {
     // Read result of the Cloud Function.
-    console.log(result.data.text);
-    alert();
+    console.log(result);
+    
+    GoToLobby(result.data.newMatchKey);
   })
   .catch(error => {
     //handle error
     console.log(error);
-  }
+  });
 
-  );
+
   console.log(matchID);
 };
 
-var thisMatchRef = firebase.database(app).ref("matches");
-thisMatchRef.on('child_changed',function(data){
-  console.log("CHILD_CHANGE");
-  console.log(data.val()); 
-  var datos = data.val(); 
-  console.log(datos);
-});
+document.getElementById("join-btn").onclick = function(){
+  console.log(this);
+  //check if there is a valid MatchID - 19 characters, starts with M
+  var joinID = document.getElementById("searchMatch").value;
+  if (joinID.length == 19 && joinID[0]=="M") {
+
+    //get username from the input field
+    var username = document.getElementById("nickname").value;
+    localsettings.username = username;
+
+    //for some reason the database matchID starts with a dash and I don't like it, but it is what it is
+    joinID = "-"+joinID;
+
+    //TODO check for duplicate names in match before joining
+
+    //send a join request
+    console.log("joining attempt");
+
+    fbaseFunc("JoinMatch",{user:username,matchID:joinID})
+    .then(function(){
+      console.log("success");
+      //go to lobby screen
+      GoToLobby(joinID);
+    })
+    .catch(function(){
+      console.log("what error is this?");
+    });
+
+    //then go to lobby
+
+    // fails
+    
+  }
+  else {
+    //indicate that we need valid joinID
+    console.log("valid ID required");
+  }
+
+
+};
+
+document.getElementById("Aencoder").onclick = function(){SetRole(this.id)};
+document.getElementById("Bencoder").onclick = function(){SetRole(this.id)};
+document.getElementById("Adecoder").onclick = function(){SetRole(this.id)};
+document.getElementById("Bdecoder").onclick = function(){SetRole(this.id)};
+
+document.getElementById("start-btn").onclick = function(){
+  //check if the button is enabled.
+  if(document.getElementById("start-btn").getAttribute("class")="btn"){
+    GoToGame(matchID); //could be imitted
+    fbaseFunc("SetState",{matchID:joinID,NewState:"Start"});
+  }
+};
+
+
+GoToLobby = function( matchID) {
+    
+    localsettings.matchID = matchID;
+
+    //change screens
+    document.getElementById("selection-screen").style.display="none";
+    document.getElementById("lobby-screen").style.display="grid";
+
+    //show game-id or link
+    document.getElementById("game-url").textContent = "Match ID: "+matchID.substr(1,20);
+
+    //listen for changes in the database
+    var thisMatchRef = firebase.database(app).ref("/matches/"+matchID);
+    thisMatchRef.on('value',function(data){
+      console.log("CHANGE");
+      var update = data.val();
+      console.log(update); 
+
+      //State check - did we start playing?
+      if(update.state!="waiting for players") {
+       GoToGame(matchID);
+       return
+      } 
+      
+
+      //Update players list
+      UpdateList(update,"playernames");
+      UpdateList(update,"Aencoder");
+      UpdateList(update,"Bencoder");
+      UpdateList(update,"Adecoder");
+      UpdateList(update,"Bdecoder");
+      
+
+      //Check if ready to start
+      //we have at least 1 player in each role
+      console.log(update);
+
+      var rolesarray = ["Aencoder","Bencoder","Adecoder","Bdecoder"];
+      var rolesQ = 0; //count the players with assigned roles
+      var readyCheck = "";
+      rolesarray.forEach(element => {
+        console.log(element);
+        console.log(update[element]);
+        if (update[element]!=undefined){
+          if (update[element].length>0) {
+            rolesQ += update[element].length;
+          } else {
+            //not ready
+            readyCheck = "failed";
+            console.log("empty roles!");
+          }
+        } else {
+          //not ready
+          console.log("empty roles!");
+          readyCheck = "failed";
+        }
+      });
+
+      console.log(readyCheck);
+      console.log(update.playernames.length);
+      console.log(rolesQ);
+
+      if (readyCheck !="failed" && rolesQ==update.playernames.length) {
+        console.log("ready to start");
+        document.getElementById("start-btn").setAttribute("class","btn");
+      }
+
+
+    });
+}
+
+GoToGame = function(matchID) {
+
+    //change screens
+    document.getElementById("lobby-screen").style.display="none";
+    document.getElementById("game-screen").style.display="grid";
+
+}
+
+
+
+
+SetRole = function(newRole) {
+  fbaseFunc("SetRole",
+            {user : localsettings.username,
+             matchID : localsettings.matchID,
+             OldRole : localsettings.role || "",
+             NewRole : newRole
+            })
+    .then(function(){
+      localsettings.role = newRole;
+      console.log(localsettings.username +" is a "+newRole);
+    })
+    .catch(function(){
+      console.log("couldn't set new role");
+  });
+
+}
+
+
+/*
+ helper functions
+  */
+
+  //Update list
+UpdateList = function(update,listName) {
+  var names = update[listName];
+  // console.log(listName+"-list");
+  // console.log(names);
+  document.getElementById(listName+"-list").innerHTML =""; // reset the list
+  //iterate over each name
+  if ( names != undefined) {
+    for (i=0, len=names.length; i<len; i++){
+      document.getElementById(listName+"-list").innerHTML +="<li class='playerName'>"+names[i]+"</li>";
+    }
+  }
+}

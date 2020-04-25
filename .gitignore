@@ -1,2 +1,5 @@
 # .gitignore 
 node_modules
+functions
+firebase-debug.log
+package-lock.json

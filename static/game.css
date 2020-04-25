@@ -1,13 +1,35 @@
+/*
+Screens
+*/
+.screen{
+    background-color:#ccf;
+    height: 100%;
+    padding: 15px 10px 0 10px;
+}
+
+#lobby-screen , #game-screen{
+    display: none;
+    display: none;
+}
+
+
+
 #buttons-row {
     margin: 25px;
 }
 
 .btn {
     margin: 10px;
-    display: inline;
+    display: inline-block;
     border: 1px solid;
     padding: 10px;
     background: #aaf;
+}
+
+.btn-disabled {
+    background: #ccc;
+    border: 1px solid #aaa;
+    color: #aaa;
 }
 
 #debugging {
@@ -34,4 +56,13 @@ td {
     border: 2px solid;
     vertical-align: top;
 
+}
+td span {
+    color: #777;
+    font-size: small;
+    padding: 5px;
+}
+
+#Aencoder, #Bencoder {
+    height: 50px;
 }

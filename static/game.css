@@ -49,10 +49,19 @@ Screens
     margin: 5px;
 }
 
+table.position-indicator{
+    height: 125px;
+    margin-bottom: 20px;
+}
+
+td.selected {
+    background: #a9d;
+}
+
 td {
 
     width: 200px;
-    height: 200px;
+    /*height: 200px;*/
     border: 2px solid;
     vertical-align: top;
 
@@ -65,4 +74,18 @@ td span {
 
 #Aencoder, #Bencoder {
     height: 50px;
+}
+
+#game-screen td {
+    height: 50px;
+}
+
+#word-list {
+    height: 100px;
+}
+
+#word-list td {
+    text-align: center;
+    vertical-align: middle;
+    background-color: beige;
 }

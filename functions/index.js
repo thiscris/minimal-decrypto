@@ -124,7 +124,7 @@ exports.JoinMatch = functions.https.onRequest(async (req, res) => {
 
         } else {
           //console.log(false);
-          res.status(200).send({ data:"not waiting for players" });
+          res.status(500).send({ data:"not waiting for players" });
 
         }
       })
@@ -225,7 +225,6 @@ exports.SetRole = functions.https.onRequest(async (req, res) => {
 });
 
 //changes the game state
-//updates player role during lobby
 exports.SetState = functions.https.onRequest(async (req, res) => {
   // CORS stuff
   res.set('Access-Control-Allow-Origin', '*');
@@ -254,23 +253,92 @@ exports.SetState = functions.https.onRequest(async (req, res) => {
       //retrieve match data
       db.ref('/matches/' + matchID).once("value")
       .then(function(snapshot){
-        var obj = snapshot.val(); //retrieves the values from the snapshot
-      
-          // add it to updates
-          var updates = {};
-          updates['/matches/'+matchID+'/state'] = NewState;
+    
+        // add new state to updates
+        var updates = {};
+        updates['/matches/'+matchID+'/state'] = NewState;
 
-          //execute the update
-          db.ref().update(updates);
+        //execute the update
+        db.ref().update(updates);
 
-          //console.log(true);
-          res.status(200).send({ data:"state updated" });
+        //console.log(true);
+        res.status(200).send({ data:"state updated" });
       })
       .catch(error => {
         //handle errors
         console.log(error);
         res.status(500).send({ data:error});
       });
+
+      if(NewState =="Start"){
+        //pick code-words if it is the start
+  
+        //retrieve dictionary 
+        db.ref('/words_list/').once("value")
+        .then(function(snapshot){
+          var dictionary = snapshot.val().split(","); //comma separated string
+          
+          //pick 8 random words
+          var arr = getRandom(dictionary, 8);
+          var teamAwords = arr.slice(0,4);
+          var teamBwords = arr.slice(4,8);
+  
+          db.ref('/matches/' + matchID).once("value")
+          .then(function(snapshot){
+          
+              var updates = {};
+  
+              updates['/matches/'+matchID+'/teamAwords'] = teamAwords;
+              updates['/matches/'+matchID+'/teamBwords'] = teamBwords;
+  
+  
+              // add new state to updates
+              updates['/matches/'+matchID+'/state'] = "Aencoder";
+  
+              //execute the update
+              db.ref().update(updates);
+  
+              //console.log(true);
+              res.status(200).send({ data:"state updated" });
+          })
+          .catch(error => {
+            //handle errors
+            console.log(error);
+            res.status(500).send({ data:error});
+          });
+  
+  
+        })
+        .catch(error => {
+          //handle errors
+          console.log(error);
+          res.status(500).send({ data:error});
+        });
+  
+      }
+
     }
+
+    
   }
 });
+
+
+
+
+//OTHER FUNCTIONS
+
+//pick N random elements from array
+function getRandom(arr, n) {
+    var result = new Array(n),
+        len = arr.length,
+        taken = new Array(len);
+    if (n > len)
+        throw new RangeError("getRandom: more elements taken than available");
+    while (n--) {
+        var x = Math.floor(Math.random() * len);
+        result[n] = arr[x in taken ? taken[x] : x];
+        taken[x] = --len in taken ? taken[len] : len;
+    }
+    return result;
+}

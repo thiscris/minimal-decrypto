@@ -6,7 +6,7 @@
     <!-- <script src="/static/socket.io.js"></script> -->
   </head>
   <body>
-    <div id="debugging">state: waiting for players</div>
+    <!-- <div id="debugging">state: waiting for players</div> -->
     <div id="selection-screen" class="screen">
       Nickname<input id="nickname">
       <div>
@@ -48,11 +48,48 @@
 
     </div>
 
-    
 
-    <div id="game-screen" class="screen">
-      Something
-    </div>
+
+    <div id="game-screen" class="screen" style="display:grid">
+      <table class="position-indicator">
+        <tr>
+          <td id="Aencoder-indication">
+            <span> team A Encoder</span>
+            <ul id="Aencoder-list"></ul>
+          </td>
+          <td id="Bencoder-indication"><span>team B Encoder</span>
+            <ul id="Bencoder-list"></ul>
+          </td>
+        </tr>
+        <tr>
+          <td id="Adecoder-indication"><span>team A Decoder</span>
+            <ul id="Adecoder-list"></ul>
+          </td>
+          <td id="Bdecoder-indication"><span>team B Decoder</span>
+            <ul id="Bdecoder-list"></ul>
+          </td>
+        </tr>
+      </table>
+      
+      <div class="subscreen">
+        <div id="digits"></div>
+        <div id="next-btn" class="btn btn-disabled">End turn</div>
+      </div>
+      <table id="word-list">
+        <tr class="words">
+          <td id="word-1"></td>
+          <td id="word-2"></td>
+          <td id="word-3"></td>
+          <td id="word-4"></td>
+        </tr>
+        <tr class="words-indices">
+          <td>1</td>
+          <td>2</td>
+          <td>3</td>
+          <td>4</td>
+        </tr>
+      </div>
+    </table>
   </body>
 
   <script src="https://www.gstatic.com/firebasejs/7.14.0/firebase-app.js"></script>

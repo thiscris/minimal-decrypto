@@ -76,6 +76,7 @@ document.getElementById("join-btn").onclick = function(){
 
     //for some reason the database matchID starts with a dash and I don't like it, but it is what it is
     joinID = "-"+joinID;
+    localsettings.matchID = joinID;
 
     //TODO check for duplicate names in match before joining
 
@@ -112,16 +113,15 @@ document.getElementById("Bdecoder").onclick = function(){SetRole(this.id)};
 
 document.getElementById("start-btn").onclick = function(){
   //check if the button is enabled.
-  if(document.getElementById("start-btn").getAttribute("class")="btn"){
-    GoToGame(matchID); //could be imitted
-    fbaseFunc("SetState",{matchID:joinID,NewState:"Start"});
+  if(document.getElementById("start-btn").getAttribute("class")=="btn"){
+    GoToGame(); //could be imitted
+    fbaseFunc("SetState",{matchID:localsettings.matchID,NewState:"Start"});
   }
 };
 
 
-GoToLobby = function( matchID) {
+GoToLobby = function(matchID) {
     
-    localsettings.matchID = matchID;
 
     //change screens
     document.getElementById("selection-screen").style.display="none";
@@ -139,7 +139,7 @@ GoToLobby = function( matchID) {
 
       //State check - did we start playing?
       if(update.state!="waiting for players") {
-       GoToGame(matchID);
+       GoToGame();
        return
       } 
       
@@ -190,11 +190,50 @@ GoToLobby = function( matchID) {
     });
 }
 
-GoToGame = function(matchID) {
+GoToGame = function() {
 
     //change screens
     document.getElementById("lobby-screen").style.display="none";
     document.getElementById("game-screen").style.display="grid";
+
+    //listen for changes in the database
+    var thisMatchRef = firebase.database(app).ref("/matches/"+localsettings.matchID);
+    thisMatchRef.on('value',function(data){
+      console.log("CHANGE");
+      var update = data.val();
+      console.log(update); 
+
+      //State check - did we start playing?
+      if(update.state=="waiting for players") {
+       return
+      } 
+
+      console.log(update.state);
+
+      //TODO this doesn't have to happen every update. Only once
+      console.log(update.teamAwords);
+      console.log(update.teamBwords);
+      //gives you the words that belong to your team
+      if( localsettings.role.substr(0,1)=="A") {
+        localsettings.words = update.teamAwords;
+      } else {
+        localsettings.words = update.teamBwords;
+      }
+
+      for (i =0; i< 4; i++) {
+        document.getElementById("word-"+(i+1)).innerHTML=localsettings.words[i];
+      }
+
+      console.log(update.state.substr(3,5));
+      if (update.state.substr(3,5)=="coder"){
+        console.log("yes");
+        document.querySelectorAll("#position-indicator td").forEach ( e=> { 
+          e.setAttribute("class","");
+        });
+        document.getElementById(update.state+"-indication").setAttribute("class","selected");
+      }
+
+    });
 
 }
 

@@ -99,16 +99,19 @@ setInterval(function() {
 //   }
 // });
 
-var username = "go";
-//This is the firebase function with your parameters as well
-var CreateMatch = firebase.functions().httpsCallable('CreateMatch?user='+username);
-//Call the function here, there is a then
 
 
 
 
 document.getElementById("host-btn").onclick = function(){
   console.log(this);
+
+  //get username from the input field
+  var username = document.getElementById("nickname").value;
+  //This is the firebase function with your parameters as well
+  var CreateMatch = firebase.functions().httpsCallable('CreateMatch?user='+username);
+  //Call the function here, there is a then
+
   var matchID = CreateMatch().then(function(result) {
     // Read result of the Cloud Function.
     console.log(result.data.text);

@@ -88,6 +88,7 @@ document.getElementById("join-btn").onclick = function(){
       console.log("success");
       //go to lobby screen
       GoToLobby(joinID);
+
     })
     .catch(function(){
       console.log("what error is this?");
@@ -121,11 +122,16 @@ document.getElementById("start-btn").onclick = function(){
 
 
 GoToLobby = function(matchID) {
+
+    //save this matchID
+    localsettings.matchID = matchID;
     
 
     //change screens
     document.getElementById("selection-screen").style.display="none";
     document.getElementById("lobby-screen").style.display="grid";
+
+    
 
     //show game-id or link
     document.getElementById("game-url").textContent = "Match ID: "+matchID.substr(1,20);
